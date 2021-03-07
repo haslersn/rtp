@@ -68,6 +68,7 @@ pub trait Dtls<S>: AsyncRead + AsyncWrite + Unpin {
     fn export_key(&mut self, exporter_label: &str, length: usize) -> Vec<u8>;
 }
 
+#[derive(Debug)]
 pub struct DtlsSrtpMuxer<S> {
     inner: S,
     dtls_buf: VecDeque<Vec<u8>>,
@@ -142,6 +143,7 @@ impl<S: AsyncRead + Unpin> DtlsSrtpMuxer<S> {
     }
 }
 
+#[derive(Debug)]
 pub struct DtlsSrtpMuxerPart<S> {
     muxer: Arc<Mutex<DtlsSrtpMuxer<S>>>,
     srtp: bool,

@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::io::{AsyncRead, AsyncWrite};
 use std::io;
+use std::fmt::Debug;
 use tokio_openssl::SslStream;
 use tokio_util::compat::{Compat, FuturesAsyncReadCompatExt, Tokio02AsyncReadCompatExt};
 
@@ -32,7 +33,7 @@ impl<S: AsyncRead + AsyncWrite + Send + Unpin> DtlsBuilder<S> for ConnectConfigu
 }
 
 #[async_trait]
-impl<S: AsyncRead + AsyncWrite + Send + Unpin> DtlsBuilder<S> for SslAcceptorBuilder {
+impl<S: AsyncRead + AsyncWrite + Send + Unpin + Debug> DtlsBuilder<S> for SslAcceptorBuilder {
     type Instance = CompatSslStream<S>;
 
     async fn handshake(mut self, stream: S) -> Result<Self::Instance, io::Error>
@@ -47,7 +48,7 @@ impl<S: AsyncRead + AsyncWrite + Send + Unpin> DtlsBuilder<S> for SslAcceptorBui
         self.set_tlsext_use_srtp(&profiles_str).unwrap();
         match tokio_openssl::accept(&self.build(), stream.compat()).await {
             Ok(stream) => Ok(stream.compat()),
-            Err(_) => Err(io::Error::new(io::ErrorKind::Other, "handshake error")),
+            Err(err) => Err(io::Error::new(io::ErrorKind::Other, format!("handshake error: {:?}", err))),
         }
     }
 }
